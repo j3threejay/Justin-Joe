@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TIDES — Modulation Source for Ableton Move</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=DM+Sans:wght@300;400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface-2: #1a1a26;
+    --border: #2a2a3a;
+    --text: #e8e6e3;
+    --text-dim: #8a8898;
+    --accent: #c4a265;
+    --accent-dim: #8a7245;
+    --accent-glow: rgba(196, 162, 101, 0.15);
+    --green: #5a9a6a;
+    --red: #c45a5a;
+    --blue: #5a7ac4;
+    --purple: #8a6ac4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+      radial-gradient(ellipse at 30% 20%, rgba(196,162,101,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 80%, rgba(90,122,196,0.04) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent-dim);
+    padding: 0.4rem 1.2rem;
+    border-radius: 2px;
+    margin-bottom: 2.5rem;
+    display: inline-block;
+  }
+
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(3rem, 8vw, 6rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+    color: var(--text-dim);
+    font-weight: 300;
+    max-width: 600px;
+    margin-bottom: 3rem;
+  }
+
+  .hero-tagline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border);
+    padding-top: 2rem;
+    max-width: 500px;
+  }
+
+  /* WAVEFORM ANIMATION */
+  .waveform-container {
+    width: 100%;
+    max-width: 600px;
+    height: 80px;
+    margin: 2rem auto;
+    position: relative;
+  }
+
+  .waveform-container svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .wave-path {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2;
+    opacity: 0.6;
+    animation: waveDrift 4s ease-in-out infinite;
+  }
+
+  .wave-path:nth-child(2) {
+    stroke: var(--blue);
+    opacity: 0.3;
+    animation-delay: -1s;
+    animation-duration: 5s;
+  }
+
+  .wave-path:nth-child(3) {
+    stroke: var(--purple);
+    opacity: 0.2;
+    animation-delay: -2s;
+    animation-duration: 6s;
+  }
+
+  @keyframes waveDrift {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(-10px); }
+  }
+
+  /* SECTIONS */
+  .section {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 5rem 2rem;
+  }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--accent-dim);
+    margin-bottom: 1rem;
+  }
+
+  .section h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    font-weight: 400;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+
+  .section p {
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    margin-bottom: 1.2rem;
+    max-width: 700px;
+  }
+
+  /* DIVIDER */
+  .divider {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+
+  /* CONCEPT CARDS */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+  }
+
+  .concept-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2rem;
+    position: relative;
+    transition: border-color 0.3s;
+  }
+
+  .concept-card:hover {
+    border-color: var(--accent-dim);
+  }
+
+  .concept-card .card-icon {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .concept-card h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+    color: var(--accent);
+  }
+
+  .concept-card p {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  /* SIGNAL FLOW */
+  .signal-flow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2.5rem;
+    margin: 2.5rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    overflow-x: auto;
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.6rem 0;
+    flex-wrap: wrap;
+  }
+
+  .flow-block {
+    padding: 0.5rem 1rem;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  .flow-block.source {
+    background: rgba(90,122,196,0.15);
+    border: 1px solid rgba(90,122,196,0.3);
+    color: var(--blue);
+  }
+
+  .flow-block.tides {
+    background: var(--accent-glow);
+    border: 1px solid var(--accent-dim);
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .flow-block.synth {
+    background: rgba(90,154,106,0.15);
+    border: 1px solid rgba(90,154,106,0.3);
+    color: var(--green);
+  }
+
+  .flow-block.fx {
+    background: rgba(138,106,196,0.15);
+    border: 1px solid rgba(138,106,196,0.3);
+    color: var(--purple);
+  }
+
+  .flow-arrow {
+    color: var(--text-dim);
+    font-size: 1rem;
+  }
+
+  /* MOCK DISPLAY */
+  .oled-mock {
+    background: #000;
+    border: 2px solid #333;
+    border-radius: 6px;
+    padding: 1.2rem 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.8;
+    color: #ddd;
+    max-width: 420px;
+    margin: 2rem auto;
+    position: relative;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.3);
+  }
+
+  .oled-mock::before {
+    content: 'OLED 128×64';
+    position: absolute;
+    top: -1.5rem;
+    right: 0;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .oled-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .oled-accent { color: var(--accent); }
+  .oled-dim { color: #666; }
+  .oled-bar { color: var(--green); }
+
+  /* FEATURE LIST */
+  .feature-list {
+    margin-top: 2rem;
+  }
+
+  .feature-item {
+    display: flex;
+    gap: 1.2rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+
+  .feature-item:last-child { border-bottom: none; }
+
+  .feature-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    color: var(--accent-dim);
+    min-width: 2.5rem;
+    line-height: 1;
+    padding-top: 0.2rem;
+  }
+
+  .feature-content h3 {
+    font-size: 1.05rem;
+    font-weight: 500;
+    margin-bottom: 0.3rem;
+    color: var(--text);
+  }
+
+  .feature-content p {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin: 0;
+  }
+
+  /* PHASES */
+  .phase-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .phase-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2rem;
+    position: relative;
+  }
+
+  .phase-card::before {
+    content: attr(data-phase);
+    font-family: 'DM Serif Display', serif;
+    font-size: 3rem;
+    color: var(--surface-2);
+    position: absolute;
+    top: 0.5rem;
+    right: 1rem;
+    line-height: 1;
+  }
+
+  .phase-card h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  .phase-card ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .phase-card li {
+    font-size: 0.88rem;
+    color: var(--text-dim);
+    padding: 0.3rem 0;
+    padding-left: 1rem;
+    position: relative;
+  }
+
+  .phase-card li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--accent-dim);
+  }
+
+  /* QUESTIONS */
+  .question-block {
+    background: var(--surface);
+    border-left: 3px solid var(--accent);
+    padding: 1.5rem 2rem;
+    margin: 1rem 0;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .question-block p {
+    font-size: 0.95rem;
+    color: var(--text);
+    margin: 0;
+  }
+
+  /* FOOTER */
+  .footer {
+    text-align: center;
+    padding: 4rem 2rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  /* ENCODER MAP */
+  .encoder-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 2rem;
+    max-width: 600px;
+  }
+
+  .encoder-item {
+    text-align: center;
+    padding: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+
+  .encoder-knob {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-dim);
+    margin: 0 auto 0.6rem;
+    position: relative;
+    background: var(--surface-2);
+  }
+
+  .encoder-knob::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 10px;
+    background: var(--accent);
+    border-radius: 1px;
+  }
+
+  .encoder-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .encoder-param {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-top: 0.2rem;
+  }
+
+  @media (max-width: 600px) {
+    .encoder-grid { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+    .encoder-item { padding: 0.6rem; }
+    .concept-grid { grid-template-columns: 1fr; }
+    .phase-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">Move Everything · MIDI FX Module · Proposal v0.1</div>
+  <h1>TIDES</h1>
+  <p class="hero-sub">A Mutable Instruments modulation source for Ableton Move — the first of its kind.</p>
+
+  <div class="waveform-container">
+    <svg viewBox="0 0 600 80" preserveAspectRatio="none">
+      <path class="wave-path" d="M0,40 C25,40 25,10 50,10 C75,10 75,70 100,70 C125,70 125,15 150,15 C175,15 175,65 200,65 C225,65 225,20 250,20 C275,20 275,60 300,60 C325,60 325,25 350,25 C375,25 375,55 400,55 C425,55 425,30 450,30 C475,30 475,50 500,50 C525,50 525,35 550,35 C575,35 575,45 600,40" />
+      <path class="wave-path" d="M0,40 C30,40 30,15 60,15 C90,15 90,65 120,65 C150,65 150,20 180,20 C210,20 210,60 240,60 C270,60 270,25 300,25 C330,25 330,55 360,55 C390,55 390,30 420,30 C450,30 450,50 480,50 C510,50 510,35 540,35 C570,35 570,40 600,40" />
+      <path class="wave-path" d="M0,40 C20,40 20,25 40,25 C60,25 60,55 80,55 C100,55 100,30 120,30 C140,30 140,50 160,50 C180,50 180,35 200,35 C220,35 220,45 240,45 C260,45 260,38 280,38 C300,38 300,42 320,42 C340,42 340,39 360,39 C380,39 380,41 400,41 C420,41 420,40 440,40 C460,40 460,40 480,40 C500,40 520,40 540,40 C560,40 580,40 600,40" />
+    </svg>
+  </div>
+
+  <p class="hero-tagline">Complex function generator → MIDI CC output → modulate anything in the chain. Filter sweeps, rhythmic gates, evolving textures — all from one module.</p>
+</section>
+
+<div class="divider"></div>
+
+<!-- WHAT IS THIS -->
+<section class="section">
+  <div class="section-label">01 — The Concept</div>
+  <h2>What if the Move had a real modulation matrix?</h2>
+  <p>Ableton Move's synth engines sound great but lack deep modulation. No complex LFOs. No function generators. No way to create evolving, breathing patches that change over time.</p>
+  <p>Tides changes that. It's a port of Mutable Instruments' Tides v2 — widely regarded as one of the most versatile modulation sources in Eurorack — reimagined as a MIDI FX module for Move Everything. Instead of outputting control voltage, it outputs MIDI CC to modulate any parameter on the synth loaded in the chain.</p>
+
+  <div class="concept-grid">
+    <div class="concept-card">
+      <span class="card-icon">◇</span>
+      <h3>3 Modes</h3>
+      <p>AD envelope (one-shot), free-running LFO, and AR envelope (gate-held). From percussive plucks to infinite sweeps.</p>
+    </div>
+    <div class="concept-card">
+      <span class="card-icon">◈</span>
+      <h3>4 Outputs</h3>
+      <p>Each generating a related but different modulation signal. Route each to a different synth parameter for complex, interconnected movement.</p>
+    </div>
+    <div class="concept-card">
+      <span class="card-icon">◆</span>
+      <h3>Infinite Shapes</h3>
+      <p>Continuously morph between triangle, saw, square, and beyond. Add wavefolding. Smooth or sharpen. Shapes that basic LFOs can't touch.</p>
+    </div>
+    <div class="concept-card">
+      <span class="card-icon">◉</span>
+      <h3>Smart Routing</h3>
+      <p>No CC numbers. Just scroll through parameter names: "Filter Cutoff," "FM Amount," "Osc Mix." The module knows what synth is loaded.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SIGNAL FLOW -->
+<section class="section">
+  <div class="section-label">02 — Signal Flow</div>
+  <h2>Where it lives in the chain</h2>
+  <p>Tides sits in the MIDI FX slot — the same position as the SuperArp arpeggiator. It receives note data from the pads and outputs MIDI CC to the synth engine downstream.</p>
+
+  <div class="signal-flow">
+    <div class="flow-row">
+      <span class="flow-block source">Pads / Sequencer</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-block tides">TIDES MOD SOURCE</span>
+      <span class="flow-arrow">→ CC</span>
+      <span class="flow-block synth">Synth (DX7 / Surge / etc.)</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-block fx">Audio FX</span>
+      <span class="flow-arrow">→ 🔊</span>
+    </div>
+    <br>
+    <div style="color: var(--text-dim); font-size: 0.75rem;">
+      Note-on triggers envelopes · Velocity modulates depth · Transport syncs LFO rate<br>
+      Up to 4 CC outputs → 4 different param destinations simultaneously
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SMART DESTINATIONS -->
+<section class="section">
+  <div class="section-label">03 — The Killer Feature</div>
+  <h2>Destinations by name, not number</h2>
+  <p>The module ships with parameter maps for every Move Everything synth. When a synth is loaded, Tides reads its manifest and shows you the available destinations as readable names — not raw MIDI CC numbers.</p>
+
+  <div class="oled-mock">
+    <div class="oled-line">
+      <span class="oled-accent">TIDES</span>
+      <span>Loop &nbsp; Slope/Phase</span>
+    </div>
+    <div class="oled-line">
+      <span class="oled-dim">∿∿∿∿∿∿∿∿∿∿∿∿</span>
+      <span>1/4 @ 120</span>
+    </div>
+    <div style="height: 0.3rem"></div>
+    <div class="oled-line">
+      <span>1→ Filter Cutoff</span>
+      <span class="oled-bar">████████░░ 80%</span>
+    </div>
+    <div class="oled-line">
+      <span>2→ Resonance</span>
+      <span class="oled-bar">█████░░░░░ 50%</span>
+    </div>
+    <div class="oled-line">
+      <span>3→ FM Amount</span>
+      <span class="oled-bar">██████████ 100</span>
+    </div>
+    <div class="oled-line">
+      <span class="oled-dim">4→ [none]</span>
+      <span></span>
+    </div>
+  </div>
+
+  <p>Phase 1 ships with bundled maps for all ~10 Move Everything synths: DX7, Surge XT, Braids, Hera, OBXd, Mini-JV, RaffoSynth, SF2 Player, and more. Phase 2 proposes a discovery API so any future synth module auto-exposes its parameters.</p>
+</section>
+
+<div class="divider"></div>
+
+<!-- ENCODER MAP -->
+<section class="section">
+  <div class="section-label">04 — Hardware Mapping</div>
+  <h2>9 encoders, all accounted for</h2>
+  <p>Every Tides parameter mapped to the Move's physical controls. Plus the pads serve as triggers for envelope modes.</p>
+
+  <div class="encoder-grid">
+    <div class="encoder-item">
+      <div class="encoder-knob"></div>
+      <div class="encoder-label">ENC 1</div>
+      <div class="encoder-param">Rate</div>
+    </div>
+    <div class="encoder-item">
+      <div class="encoder-knob"></div>
+      <div class="encoder-label">ENC 2</div>
+      <div class="encoder-param">Slope</div>
+    </div>
+    <div class="encoder-item">
+      <div class="encoder-knob"></div>
+      <div class="encoder-label">ENC 3</div>
+      <div class="encoder-param">Shape</div>
+    </div>
+    <div class="encoder-item">
+      <div class="encoder-knob"></div>
+      <div class="encoder-label">ENC 4</div>
+      <div class="encoder-param">Smooth</div>
+    </div>
+    <div class="encoder-item">
+      <div class="encoder-knob"></div>
+      <div class="encoder-label">ENC 5</div>
+      <div class="encoder-param">Shift</div>
+    </div>
+    <div class="encoder-item">
+      <div class="encoder-knob"></div>
+      <div class="encoder-label">ENC 6</div>
+      <div class="encoder-param">Out Mode</div>
+    </div>
+    <div class="encoder-item">
+      <div class="encoder-knob"></div>
+      <div class="encoder-label">ENC 7</div>
+      <div class="encoder-param">Ramp Mode</div>
+    </div>
+    <div class="encoder-item">
+      <div class="encoder-knob"></div>
+      <div class="encoder-label">ENC 8</div>
+      <div class="encoder-param">Mod Depth</div>
+    </div>
+    <div class="encoder-item">
+      <div class="encoder-knob"></div>
+      <div class="encoder-label">ENC 9</div>
+      <div class="encoder-param">Destination</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 2rem;">
+    <div class="feature-item" style="border-bottom: 1px solid var(--border);">
+      <div class="feature-num">⬡</div>
+      <div class="feature-content">
+        <h3>Pad Triggers</h3>
+        <p>Note-on triggers AD envelopes or opens AR gates. Velocity optionally scales mod depth. Aftertouch can modulate shape or smoothness in real time.</p>
+      </div>
+    </div>
+    <div class="feature-item" style="border-bottom: none;">
+      <div class="feature-num">⬡</div>
+      <div class="feature-content">
+        <h3>Tempo Sync</h3>
+        <p>In Looping mode, lock the LFO rate to Move's transport: 1/16, 1/8, 1/4, 1/2, 1 bar, 2 bars, 4 bars. Rate encoder switches to division select when synced.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- WHY FIRST OF ITS KIND -->
+<section class="section">
+  <div class="section-label">05 — Why This Matters</div>
+  <h2>First of its kind</h2>
+
+  <div class="feature-list">
+    <div class="feature-item">
+      <div class="feature-num">1</div>
+      <div class="feature-content">
+        <h3>No modulation sources exist in Move Everything</h3>
+        <p>The ecosystem has synths, audio FX, and one arpeggiator. There are zero modules that generate continuous modulation and route it to other modules' parameters. This opens a new category.</p>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-num">2</div>
+      <div class="feature-content">
+        <h3>The param manifest system benefits everyone</h3>
+        <p>Once synths expose their parameters via manifests, any future module can use them — macro controllers, random modulators, step sequencers targeting specific params. We'd be laying infrastructure.</p>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-num">3</div>
+      <div class="feature-content">
+        <h3>Tides is the right DSP for the job</h3>
+        <p>MIT-licensed, well-documented, battle-tested in thousands of Eurorack systems. The v2 codebase shares architectural patterns with Plaits (already ported to Move). It's portable and proven.</p>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-num">4</div>
+      <div class="feature-content">
+        <h3>Content opportunity</h3>
+        <p>First modulation source for Move Everything is inherently newsworthy in the community. Tutorial/demo potential on YouTube. Positions us as contributors, not just users.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- DEVELOPMENT PHASES -->
+<section class="section">
+  <div class="section-label">06 — Roadmap</div>
+  <h2>Three phases</h2>
+
+  <div class="phase-grid">
+    <div class="phase-card" data-phase="1">
+      <h3>Core MVP</h3>
+      <ul>
+        <li>Port Tides v2 DSP (strip hardware deps)</li>
+        <li>MIDI FX plugin skeleton</li>
+        <li>Looping mode (free-run LFO)</li>
+        <li>Single CC output, fixed destination</li>
+        <li>Basic encoder mapping</li>
+        <li>Minimal OLED display</li>
+        <li>Build + test on Move hardware</li>
+      </ul>
+    </div>
+    <div class="phase-card" data-phase="2">
+      <h3>Full Feature Set</h3>
+      <ul>
+        <li>AD and AR ramp modes</li>
+        <li>All 4 output modes</li>
+        <li>4-destination routing</li>
+        <li>Param manifest + name picker</li>
+        <li>Mod depth per output</li>
+        <li>Tempo sync to transport</li>
+        <li>Waveform preview on OLED</li>
+        <li>Bipolar / unipolar toggle</li>
+      </ul>
+    </div>
+    <div class="phase-card" data-phase="3">
+      <h3>Ecosystem</h3>
+      <ul>
+        <li>Bundled maps for all ME synths</li>
+        <li>Propose discovery API to community</li>
+        <li>Preset save/load</li>
+        <li>Community testing + Discord feedback</li>
+        <li>Module Store submission</li>
+        <li>YouTube demo / walkthrough</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- OPEN QUESTIONS -->
+<section class="section">
+  <div class="section-label">07 — Open Questions</div>
+  <h2>Things to figure out together</h2>
+
+  <div class="question-block">
+    <p>Does Move Everything's MIDI FX slot pass CC downstream to synth modules? The SuperArp passes notes, but CC passthrough is unconfirmed. This is the #1 technical validation needed.</p>
+  </div>
+  <div class="question-block">
+    <p>CC bandwidth — how many CC messages per second can the internal bus handle before things get choppy? This determines our output rate (30Hz? 60Hz? 120Hz?).</p>
+  </div>
+  <div class="question-block">
+    <p>Can one MIDI FX module modulate both the synth AND an audio FX? E.g. Tides output 1 → filter cutoff on DX7, output 2 → delay feedback on Space Delay.</p>
+  </div>
+  <div class="question-block">
+    <p>What CCs do each Move Everything synth actually respond to? We need to audit every synth module's source code to build the param manifests.</p>
+  </div>
+  <div class="question-block">
+    <p>Is the Move Everything community (Charles Vestal) open to framework-level additions like a param discovery API?</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p>TIDES MODULATION SOURCE — Proposal v0.1 — March 2026</p>
+  <p style="margin-top: 0.5rem;">
+    Based on <a href="https://github.com/pichenettes/eurorack/tree/master/tides2">Mutable Instruments Tides v2</a> (MIT) · 
+    Built for <a href="https://github.com/charlesvestal/move-anything">Move Everything</a>
+  </p>
+</footer>
+
+</body>
+</html>
